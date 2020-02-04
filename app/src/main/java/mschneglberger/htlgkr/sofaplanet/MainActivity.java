@@ -19,11 +19,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     private final String TAG = "MainActivity";
@@ -37,8 +41,17 @@ public class MainActivity extends AppCompatActivity {
 
         loadMoviesFromAsset("movies.json");
 
+
+        List<MovieImageDownloader> threadList = new ArrayList<>();
         for(Movie mo : movieList){
-            mo.setupImage();
+            threadList.add(new MovieImageDownloader(mo));
+        }
+        ExecutorService executor = Executors.newFixedThreadPool(64);
+
+        try {
+            executor.invokeAll(threadList);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
 
